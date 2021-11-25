@@ -40,7 +40,7 @@ object-threshold=3
 class-id=0
 
 [line-crossing-stream-0]
-enable=1
+enable=0
 #Label;direction;lc
 line-crossing-EntryTop=1300;150;1300;400;1090;300;1640;300
 line-crossing-EntryLeft=900;450;1200;450;1090;680;1090;120
@@ -59,7 +59,7 @@ extended=0
 mode=strict
 
 [direction-detection-stream-0]
-enable=1
+enable=0
 #Label;direction;
 direction-EntryBottom=1320;900;1320;600
 direction-EntryTop=1320;150;1320;400
