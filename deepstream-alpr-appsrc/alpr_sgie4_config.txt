@@ -1,0 +1,162 @@
+################################################################################
+# Copyright (c) 2018-2020, NVIDIA CORPORATION. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+################################################################################
+
+# Following properties are mandatory when engine files are not specified:
+#   int8-calib-file(Only in INT8)
+#   Caffemodel mandatory properties: model-file, proto-file, output-blob-names
+#   UFF: uff-file, input-dims, uff-input-blob-name, output-blob-names
+#   ONNX: onnx-file
+#
+# Mandatory properties for detectors:
+#   num-detected-classes
+#
+# Optional properties for detectors:
+#   cluster-mode(Default=Group Rectangles), interval(Primary mode only, Default=0)
+#   custom-lib-path,
+#   parse-bbox-func-name
+#
+# Mandatory properties for classifiers:
+#   classifier-threshold, is-classifier
+#
+# Optional properties for classifiers:
+#   classifier-async-mode(Secondary mode only, Default=false)
+#
+# Optional properties in secondary mode:
+#   operate-on-gie-id(Default=0), operate-on-class-ids(Defaults to all classes),
+#   input-object-min-width, input-object-min-height, input-object-max-width,
+#   input-object-max-height
+#
+# Following properties are always recommended:
+#   batch-size(Default=1)
+#
+# Other optional properties:
+#   net-scale-factor(Default=1), network-mode(Default=0 i.e FP32),
+#   model-color-format(Default=0 i.e. RGB) model-engine-file, labelfile-path,
+#   mean-file, gie-unique-id(Default=0), offsets, process-mode (Default=1 i.e. primary),
+#   custom-lib-path, network-mode(Default=0 i.e FP32)
+#
+# The values in the config file are overridden by values set through GObject
+# properties.
+
+[property]
+## 1. image preprocess
+
+# variance
+net-scale-factor=1
+
+# Integer 0: RGB 1: BGR 2: GRAY
+model-color-format=1
+
+# Aspect ratio
+#maintain-aspect-ratio=1
+
+# Resize interploation
+#scaling-filter=0
+
+# Compute hardware to use for scaling frames / object crops to network resolution.
+#scaling-compute-hw=0
+
+# Indicates whether to pad image symmetrically while scaling input.
+#symmetric-padding=0
+
+
+## 2. build network
+
+# When a network supports both implicit batch dimension and full dimension, force the implicit batch dimension mode.
+force-implicit-batch-dim=1
+
+# Number of frames or objects to be inferred together in a batch.
+batch-size=1
+
+# model file
+mean-file=./models/Secondary_VehicleTypes/mean.ppm
+proto-file=./models/Secondary_VehicleTypes/resnet18.prototxt
+model-file=./models/Secondary_VehicleTypes/resnet18.caffemodel
+
+# build engine
+int8-calib-file=./models/Secondary_VehicleTypes/cal_trt.bin
+model-engine-file=./models/Secondary_VehicleTypes/resnet18.caffemodel_b1_gpu0_fp16.engine
+
+# label file
+labelfile-path=./models/Secondary_VehicleTypes/labels.txt
+
+# input frame size
+#infer-dims=3;544;960
+
+# input layer
+#uff-input-blob-name=input_1
+
+# output layer
+output-blob-names=predictions/Softmax
+
+# Name of the custom classifier output parsing function. If not specified, Gst-nvinfer uses the internal parsing function for softmax layers.
+#parse-classifier-func-name=NvDsInferParseCustomNVPlate
+
+# Absolute pathname of a library containing custom method implementations for custom models.
+#custom-lib-path=./nvinfer_custom_lpr_parser/libnvdsinfer_custom_impl_lpr.so
+
+# 0=FP32, 1=INT8, 2=FP16 mode
+network-mode=2
+
+# Infer Processing Mode 1=Primary Mode 2=Secondary Mode
+process-mode=2
+
+# 0=detector, 1=classifier, 2=segmentatio, 3=instance segmentation, 100=other
+network-type=1
+
+# Enables inference on detected objects and asynchronous metadata attachments.
+classifier-async-mode=0
+
+# Minimum threshold label probability. 
+classifier-threshold=0.5
+
+# Enable tensor metadata output
+output-tensor-meta=1
+
+
+## 3.  Gst Properties
+
+# Device ID of GPU to use for pre-processing/inference (dGPU only)
+gpu-id=0
+
+# Unique ID identifying metadata generated by this GIE
+gie-unique-id=6
+
+# Unique ID of the GIE on whose metadata (bounding boxes) this GIE is to operate on
+operate-on-gie-id=1
+
+# Class IDs of the parent GIE on which this GIE is to operate on
+operate-on-class-ids=0
+
+# Number of consecutive batches to be skipped for inference
+#secondary-reinfer-interval=0
+
+# There is a “workspace” parameter that limit the maximal memory amount for TensorRT. Default is set to 450Mb (450x1024x1024).
+#workspace-size = 471859200
+
+
+## 4. secondary detector
+
+# Secondary GIE infers only on objects with this minimum height and width
+input-object-min-width=64
+input-object-min-height=64
+
